@@ -59,6 +59,12 @@ class AbstractAWSAutoscaleTest(ToilTest):
         callCommand = ['toil', 'clean', self.jobStore]
         subprocess.check_call(callCommand)
 
+    def verifyHostKeyUtil(self):
+        # Add the host key to known_hosts so that the rest of the tests can
+        # pass without choking on the verification prompt.
+        AWSProvisioner.sshLeader(clusterName=self.clusterName, strict=True,
+                                 sshOptions=['-oStrictHostKeyChecking=no'])
+
     def __init__(self, methodName):
         super(AbstractAWSAutoscaleTest, self).__init__(methodName=methodName)
         self.instanceType = 'm3.large'
@@ -108,6 +114,10 @@ class AbstractAWSAutoscaleTest(ToilTest):
         # get the leader so we know the IP address - we don't need to wait since create cluster
         # already insures the leader is running
         self.leader = AWSProvisioner._getLeader(wait=False, clusterName=self.clusterName)
+
+        log.critical("Checkpoint 1")
+        self.verifyHostKeyUtil()
+        log.critical("Checkpoint 2")
 
         assert len(self.getMatchingRoles(self.clusterName)) == 1
         # --never-download prevents silent upgrades to pip, wheel and setuptools

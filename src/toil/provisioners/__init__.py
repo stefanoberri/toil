@@ -65,7 +65,7 @@ class Cluster(object):
             assert False, "Invalid provisioner '%s'" % provisioner
 
     def sshCluster(self, args):
-        self.provisioner.sshLeader(self.clusterName, args, self.zone)
+        self.provisioner.sshLeader(self.clusterName, args, self.zone, strict=True)
 
     def rsyncCluster(self, args):
         self.provisioner.rsyncLeader(self.clusterName, args, self.zone)
