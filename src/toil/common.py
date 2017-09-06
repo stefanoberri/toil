@@ -20,7 +20,6 @@ import re
 import sys
 import tempfile
 import time
-import socket
 import uuid
 from argparse import ArgumentParser
 from threading import Thread
@@ -35,7 +34,6 @@ from bd2k.util.humanize import bytes2human
 from toil import logProcessContext
 from toil.lib.bioio import addLoggingOptions, getLogLevelString, setLoggingFromOptions
 from toil.realtimeLogger import RealtimeLogger
-from toil.batchSystems.options import setOptions as setBatchOptions
 from toil.batchSystems.options import addOptions as addBatchOptions
 from toil.batchSystems.options import setDefaultOptions as setDefaultBatchOptions
 
@@ -96,6 +94,7 @@ class Config(object):
         self.maxPreemptableServiceJobs = sys.maxsize
         self.maxServiceJobs = sys.maxsize
         self.deadlockWait = 60 # Wait one minute before declaring a deadlock
+        self.statePollingWait = 1 # Wait 1 seconds before querying job state
 
         #Resource requirements
         self.defaultMemory = 2147483648
@@ -222,6 +221,7 @@ class Config(object):
         setOption("maxServiceJobs", int)
         setOption("maxPreemptableServiceJobs", int)
         setOption("deadlockWait", int)
+        setOption("statePollingWait", int)
 
         # Resource requirements
         setOption("defaultMemory", h2b, iC(1))
@@ -411,6 +411,8 @@ def _addOptions(addGroupFn, config):
                 help=("The maximum number of service jobs that can run concurrently on preemptable nodes. default=%s" % config.maxPreemptableServiceJobs))
     addOptionFn("--deadlockWait", dest="deadlockWait", default=None,
                 help=("The minimum number of seconds to observe the cluster stuck running only the same service jobs before throwing a deadlock exception. default=%s" % config.deadlockWait))
+    addOptionFn("--statePollingWait", dest="statePollingWait", default=1,
+                help=("The minimum number of seconds to wait before retrieving the current job state, in seconds"))
 
     #
     #Resource requirements
